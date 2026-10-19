@@ -1,0 +1,1234 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Столичный капитал</title>
+<meta name="description" content="Экономическая настольная игра с улицами Москвы в стиле начала 90-х. Вы против компьютерных соперников, от 2 до 6 игроков.">
+<meta name="theme-color" content="#c4161c">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Капитал">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Stalinist+One&family=Oswald:wght@500;700&family=PT+Sans+Narrow:wght@400;700&family=PT+Sans:wght@400;700&family=PT+Mono&display=swap">
+<style>
+/* Layout: a Soviet cooperative-made board game of 1991 on a linoleum kitchen floor — yellowed cardboard board, red-star centre, the desk on the right is a stack of printed paper forms */
+:root {
+  --table: #6b4630;
+  --table-2: #5a3a27;
+  --board: #efe3c2;
+  --board-edge: #2b1d16;
+  --paper: #f4ebd3;
+  --ink: #231a14;
+  --muted: #6e5f4e;
+  --money: #c4161c;
+  --gold: #e2b33c;
+  --font-poster: 'Stalinist One', 'Arial Black', Impact, sans-serif;
+  --font-display: 'Oswald', 'Arial Narrow', Impact, sans-serif;
+  --font-cell: 'PT Sans Narrow', 'Arial Narrow', sans-serif;
+  --font-body: 'PT Sans', 'Segoe UI', Roboto, sans-serif;
+  --font-type: 'PT Mono', 'Courier New', monospace;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background:
+    radial-gradient(circle at 50% 50%, rgba(0,0,0,0) 0 60%, rgba(0,0,0,.25) 100%) fixed,
+    repeating-conic-gradient(from 45deg, var(--table) 0 25%, var(--table-2) 0 50%) 0 0 / 56px 56px;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 14px;
+}
+.app {
+  max-width: 1280px; margin: 0 auto;
+  padding-block: 14px 32px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+h1, h2, h3 { font-family: var(--font-display); font-weight: 700; margin: 0; text-wrap: balance; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.btn {
+  font-family: var(--font-display); font-weight: 500; font-size: 15px; letter-spacing: .5px; text-transform: uppercase;
+  background: var(--money); color: #fff; border: 0; border-radius: 6px; padding: 9px 14px;
+  box-shadow: 0 3px 0 #7e0a1d;
+}
+.btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #7e0a1d; }
+.btn:disabled { background: #b9b2a2; box-shadow: 0 3px 0 #8e8778; cursor: default; transform: none; }
+.btn.alt { background: #24614a; box-shadow: 0 3px 0 #133628; }
+.btn.ghost { background: var(--paper); color: var(--ink); box-shadow: 0 3px 0 #b8b19b; border: 1px solid #cfc7ae; }
+.btn.sm { font-size: 12px; padding: 5px 9px; }
+
+/* ---------- setup ---------- */
+.setup { max-width: 620px; margin: 30px auto; background: var(--paper); border-radius: 10px; padding: 26px 22px; display: grid; gap: 16px; box-shadow: 0 20px 50px rgba(0,0,0,.35); border: 6px solid var(--money); }
+.setup .logo { justify-self: center; transform: rotate(-4deg); background: var(--money); color: #fff; font-family: var(--font-display); font-size: clamp(30px, 8vw, 46px); padding: 6px 20px; border: 3px solid #fff; box-shadow: 0 0 0 3px var(--money); letter-spacing: 2px; text-transform: uppercase; }
+.setup p { margin: 0; color: var(--muted); line-height: 1.45; text-align: center; }
+.setup label { font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); display: block; margin-bottom: 4px; }
+.setup input { width: 100%; font: inherit; font-size: 17px; padding: 9px 11px; border: 1px solid #cfc7ae; border-radius: 6px; background: #fff; color: var(--ink); }
+.seg { display: flex; gap: 8px; flex-wrap: wrap; }
+.seg button { flex: 1 1 90px; padding: 9px; border-radius: 6px; border: 1px solid #cfc7ae; background: #fff; font-weight: 700; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
+.setup ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; color: var(--muted); line-height: 1.4; font-size: 13px; }
+
+/* ---------- layout ---------- */
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 16px; align-items: start; }
+@media (max-width: 980px) { .layout { grid-template-columns: 1fr; } }
+
+/* ---------- board ---------- */
+.boardwrap { width: 100%; max-width: 860px; margin: 0 auto; container-type: inline-size; }
+.board {
+  display: grid; aspect-ratio: 1; width: 100%;
+  grid-template-columns: 1.55fr repeat(9, 1fr) 1.55fr;
+  grid-template-rows: 1.55fr repeat(9, 1fr) 1.55fr;
+  background: var(--board-edge); gap: 1px; border: 3px solid var(--board-edge);
+  box-shadow: 0 20px 40px rgba(0,0,0,.4);
+}
+.cell { background: var(--board); position: relative; display: flex; min-width: 0; min-height: 0; overflow: hidden; cursor: pointer; font-family: var(--font-cell); }
+.cell:hover { filter: brightness(1.04); }
+.cell .bar { flex: 0 0 22%; }
+.cell .body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: space-between; text-align: center; padding: 3% 4%; min-width: 0; min-height: 0; }
+.cell .nm { font-size: max(6px, 1.05cqw); line-height: 1.05; font-weight: 700; text-transform: uppercase; overflow-wrap: anywhere; }
+.cell .pr { font-size: max(6px, 1.05cqw); }
+.cell .ic { font-family: var(--font-display); font-size: max(9px, 2.2cqw); line-height: 1; color: var(--muted); }
+.cell.bottom { flex-direction: column; }
+.cell.top { flex-direction: column-reverse; }
+.cell.left { flex-direction: row-reverse; }
+.cell.right { flex-direction: row; }
+.cell.left .bar, .cell.right .bar { flex-basis: 18%; }
+.cell.corner { justify-content: center; align-items: center; }
+.cell.bottom .body { padding-bottom: 11%; }
+.cell.top .body { padding-top: 11%; }
+.cell.left .body { padding-left: 9%; }
+.cell.right .body { padding-right: 9%; }
+.cell.corner .body { justify-content: center; gap: 4%; }
+.cell.corner .nm { font-size: max(7px, 1.3cqw); }
+.cell.corner .ic { font-size: max(12px, 3.4cqw); color: var(--money); }
+.own { position: absolute; width: 0; height: 0; }
+.cell.owned .own { background: var(--oc); }
+.cell.bottom .own { left: 0; right: 0; bottom: 0; width: auto; height: 9%; }
+.cell.top .own { left: 0; right: 0; top: 0; width: auto; height: 9%; }
+.cell.left .own { top: 0; bottom: 0; left: 0; height: auto; width: 7%; }
+.cell.right .own { top: 0; bottom: 0; right: 0; height: auto; width: 7%; }
+.cell.mort .body { background: repeating-linear-gradient(-45deg, transparent 0 5px, rgba(200,16,46,.18) 5px 8px); }
+.cell.mort .pr::after { content: " · залог"; color: var(--money); font-weight: 700; }
+.hs { position: absolute; display: flex; gap: 6%; align-items: center; justify-content: center; }
+.cell.bottom .hs, .cell.top .hs { left: 0; right: 0; height: 22%; }
+.cell.bottom .hs { top: 0; }
+.cell.top .hs { bottom: 0; }
+.cell.left .hs, .cell.right .hs { top: 0; bottom: 0; width: 18%; flex-direction: column; }
+.cell.left .hs { right: 0; }
+.cell.right .hs { left: 0; }
+.house { width: 16%; aspect-ratio: 1; background: #1f9e48; border: 1px solid #0b3d1c; border-radius: 1px; }
+.cell.left .house, .cell.right .house { width: 55%; height: auto; }
+.hotel { width: 44%; aspect-ratio: 2; background: #d1122f; border: 1px solid #5a0613; border-radius: 1px; }
+.cell.left .hotel, .cell.right .hotel { width: 70%; aspect-ratio: 1.2; }
+.toks { position: absolute; inset: 22% 6% 10%; display: flex; flex-wrap: wrap; gap: 3%; align-content: center; justify-content: center; pointer-events: none; }
+.cell.corner .toks { inset: 12%; }
+.tok { width: max(12px, 2.4cqw); aspect-ratio: 1; border-radius: 50%; background: var(--tc); border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,.45); display: grid; place-items: center; font-family: var(--font-display); font-size: max(7px, 1.2cqw); color: #fff; transition: transform .15s; }
+.tok.jailed { box-shadow: 0 0 0 2px #000, 0 2px 4px rgba(0,0,0,.45); }
+.cell.lit { box-shadow: inset 0 0 0 3px var(--gold); }
+
+.center {
+  grid-area: 2 / 2 / 11 / 11; background: var(--board); position: relative;
+  display: grid; place-items: center; overflow: hidden;
+}
+.center .stamp {
+  position: absolute; left: 50%; top: 38%; transform: translate(-50%, -50%) rotate(-38deg);
+  background: var(--money); color: #fff; font-family: var(--font-display); text-transform: uppercase;
+  font-size: 5.2cqw; letter-spacing: .3cqw; padding: .6cqw 2.4cqw; border: .5cqw solid #fff; box-shadow: 0 0 0 .5cqw var(--money); white-space: nowrap;
+}
+.pile { position: absolute; width: 15cqw; aspect-ratio: 1.6; border: .35cqw dashed var(--muted); border-radius: 1cqw; display: grid; place-items: center; font-family: var(--font-display); font-size: 1.6cqw; color: var(--muted); text-transform: uppercase; }
+.pile.chance { left: 15%; top: 13%; transform: rotate(-38deg); background: #f9d27a; }
+.pile.chest { right: 12%; bottom: 30%; transform: rotate(-38deg); background: #a9d4ee; }
+.centerinfo { position: absolute; left: 0; right: 0; bottom: 5%; display: grid; justify-items: center; gap: 1.2cqw; }
+.dice { display: flex; gap: 2cqw; }
+.die { width: 7cqw; aspect-ratio: 1; background: #fff; border-radius: 1.2cqw; box-shadow: 0 .5cqw 0 #bbb, 0 .8cqw 1.5cqw rgba(0,0,0,.25); display: grid; grid-template: repeat(3, 1fr) / repeat(3, 1fr); padding: 1cqw; }
+.die i { border-radius: 50%; }
+.die i.on { background: var(--ink); }
+.die.rolling { animation: wob .1s infinite; }
+.status { font-family: var(--font-display); font-size: max(12px, 1.9cqw); text-align: center; max-width: 70cqw; line-height: 1.2; }
+.cardshow { position: absolute; left: 50%; top: 44%; transform: translate(-50%, -50%); width: 46cqw; background: var(--paper); border-radius: 1.2cqw; box-shadow: 0 1cqw 3cqw rgba(0,0,0,.35); padding: 2cqw; text-align: center; display: grid; gap: 1cqw; animation: pop .25s ease-out; }
+.cardshow b { font-family: var(--font-display); font-size: max(13px, 2.4cqw); text-transform: uppercase; }
+.cardshow span { font-size: max(12px, 1.7cqw); line-height: 1.3; }
+.cardshow.chance { border-top: 1.4cqw solid #f0a81a; }
+.cardshow.chest { border-top: 1.4cqw solid #3a8fd0; }
+
+/* ---------- desk ---------- */
+.desk { display: grid; gap: 12px; min-width: 0; }
+.panel { background: var(--paper); border-radius: 8px; padding: 12px; box-shadow: 0 6px 18px rgba(0,0,0,.25); min-width: 0; }
+.panel h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 8px; }
+.players { display: grid; gap: 8px; }
+.pl { display: grid; grid-template-columns: auto 1fr auto; gap: 4px 10px; align-items: center; padding: 8px 10px; border-radius: 6px; border: 2px solid transparent; background: #fff; }
+.pl.active { border-color: var(--gold); background: #fff8dc; }
+.pl.bk { opacity: .45; text-decoration: line-through; }
+.pl .dot { width: 18px; height: 18px; border-radius: 50%; background: var(--tc); border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.3); }
+.pl .nm { font-weight: 700; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pl .nm small { font-weight: 400; color: var(--muted); }
+.pl .cash { font-family: var(--font-display); font-size: 17px; color: var(--money); font-variant-numeric: tabular-nums; }
+.pl .chips { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 3px; }
+.chipp { width: 14px; height: 18px; border-radius: 2px; border: 1px solid rgba(0,0,0,.25); position: relative; }
+.chipp.m { opacity: .35; }
+.chipp.r, .chipp.u { background: #fff; display: grid; place-items: center; font-size: 9px; font-weight: 700; }
+.chipp b { position: absolute; inset: auto 0 -1px 0; font-size: 9px; line-height: 1; text-align: center; color: #fff; text-shadow: 0 0 2px #000; }
+.act { display: grid; gap: 10px; }
+.act .note { margin: 0; line-height: 1.4; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; }
+.log { max-height: 260px; overflow-y: auto; margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: 13px; line-height: 1.35; }
+.log li { padding-bottom: 4px; border-bottom: 1px dashed #ddd5bd; }
+.log li:first-child { font-weight: 700; }
+.toolbar { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+
+/* ---------- modal ---------- */
+.overlay { position: fixed; inset: 0; background: rgba(10, 20, 14, .6); display: grid; place-items: center; z-index: 30; overflow-y: auto; padding: 18px max(16px, env(safe-area-inset-right, 0px)) 18px max(16px, env(safe-area-inset-left, 0px)); }
+.dlg { width: min(100%, 520px); background: var(--paper); border-radius: 10px; padding: 18px; display: grid; gap: 12px; box-shadow: 0 24px 60px rgba(0,0,0,.45); animation: pop .2s ease-out; max-height: calc(100dvh - 36px); overflow-y: auto; }
+.dlg h2 { font-size: 22px; text-transform: uppercase; }
+.dlg p { margin: 0; line-height: 1.45; }
+.deed { border: 2px solid var(--ink); border-radius: 4px; background: #fff; max-width: 300px; margin: 0 auto; width: 100%; }
+.deed .top { padding: 10px; text-align: center; border-bottom: 2px solid var(--ink); }
+.deed .top small { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }
+.deed .top b { font-family: var(--font-display); font-size: 18px; text-transform: uppercase; }
+.deed table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.deed td { padding: 3px 12px; }
+.deed td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+.deed tr.hi td { font-weight: 700; background: #fff3c4; }
+.deed .foot { border-top: 1px solid #ccc; padding: 6px 12px 10px; font-size: 12px; color: var(--muted); text-align: center; line-height: 1.4; }
+.dlg .actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+.mgrow { display: grid; grid-template-columns: 10px 1fr auto; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px dashed #ddd5bd; }
+.mgrow .sw { width: 10px; height: 28px; border-radius: 2px; }
+.mgrow .info { min-width: 0; }
+.mgrow .info b { display: block; font-size: 14px; }
+.mgrow .info small { color: var(--muted); }
+.mgrow .ctl { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+.money-big { font-family: var(--font-display); font-size: 22px; color: var(--money); }
+.trade { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.trade .col { min-width: 0; display: grid; gap: 6px; align-content: start; }
+.trade .col h4 { margin: 0; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+.trade label.it { display: flex; align-items: center; gap: 6px; font-size: 13px; padding: 3px 0; }
+.trade label.it span.sw { width: 8px; height: 16px; border-radius: 2px; flex: none; }
+.trade input[type=number] { width: 100%; font: inherit; padding: 6px 8px; border-radius: 5px; border: 1px solid #cfc7ae; }
+@media (max-width: 460px) { .trade { grid-template-columns: 1fr; } }
+.auc { text-align: center; display: grid; gap: 6px; }
+.auc .bid { font-family: var(--font-display); font-size: 34px; color: var(--money); }
+.auc .who { color: var(--muted); }
+.standings { display: grid; gap: 6px; }
+.standings div { display: flex; justify-content: space-between; gap: 10px; padding: 6px 10px; background: #fff; border-radius: 6px; }
+
+
+/* ---------- USSR 1991 print look ---------- */
+.board { background: var(--board-edge); }
+.cell { background-color: var(--board); background-image: radial-gradient(rgba(60,40,20,.07) 1px, transparent 1.2px); background-size: 4px 4px; }
+.center { background-color: var(--board); background-image: radial-gradient(rgba(60,40,20,.06) 1px, transparent 1.2px); background-size: 5px 5px; }
+.bigstar { position: absolute; width: 62%; left: 19%; top: 6%; opacity: .14; }
+.center .stamp { font-family: var(--font-poster); font-size: 4cqw; letter-spacing: 0; top: 40%; transform: translate(-50%, -50%) rotate(-30deg); background: var(--money); border-color: var(--board); box-shadow: 0 0 0 .5cqw var(--money), .9cqw .9cqw 0 .5cqw rgba(35,26,20,.85); padding: 1cqw 2.6cqw .7cqw; }
+.center .stamp small { display: block; font-family: var(--font-display); font-size: 1.5cqw; letter-spacing: .5cqw; text-align: center; margin-top: .4cqw; }
+.madein { position: absolute; left: 4%; bottom: 3%; font-family: var(--font-type); font-size: max(8px, 1.05cqw); color: var(--muted); line-height: 1.35; transform: rotate(-1deg); }
+.pricetag { position: absolute; right: 4%; top: 4%; border: .3cqw solid var(--money); color: var(--money); font-family: var(--font-display); font-size: max(9px, 1.4cqw); padding: .5cqw 1cqw; transform: rotate(6deg); text-transform: uppercase; letter-spacing: .1cqw; }
+.pile { border-style: solid; border-width: .3cqw; border-color: var(--ink); box-shadow: .5cqw .5cqw 0 rgba(35,26,20,.35); font-family: var(--font-poster); font-size: 1.4cqw; color: var(--ink); }
+.pile.chance { background: #f0b63a; }
+.pile.chest { background: #8fb9cc; }
+.die { border-radius: .8cqw; background: #fffaf0; }
+.die i.on { background: var(--money); }
+.die i.on:only-child, .die i.on:nth-child(5):last-child { background: var(--money); }
+.status { font-family: var(--font-display); text-transform: uppercase; letter-spacing: .5px; }
+.panel { background: var(--paper); border-radius: 2px; border: 1px solid #c9b994; box-shadow: 3px 4px 0 rgba(0,0,0,.25); background-image: repeating-linear-gradient(transparent 0 23px, rgba(110,95,78,.12) 23px 24px); }
+.panel h3 { font-family: var(--font-poster); font-size: 11px; letter-spacing: 1px; color: var(--money); border-bottom: 3px double var(--money); padding-bottom: 6px; }
+.log { font-family: var(--font-type); font-size: 12px; }
+.log li { border-bottom-style: dotted; }
+.pl { border-radius: 2px; background: #fffaf0; border: 1px solid #d9cba6; }
+.pl.active { border: 2px solid var(--money); background: #fff2d6; }
+.pl .cash { font-family: var(--font-type); font-size: 15px; font-weight: 700; }
+.btn { border-radius: 2px; border: 2px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); }
+.btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+.btn:disabled { box-shadow: 3px 3px 0 #8e8778; border-color: #8e8778; }
+.btn.alt { background: #2d5a3d; box-shadow: 3px 3px 0 var(--ink); }
+.btn.ghost { background: var(--paper); box-shadow: 3px 3px 0 var(--ink); border: 2px solid var(--ink); }
+.setup { border-radius: 2px; border: 0; background-color: var(--paper); box-shadow: 8px 10px 0 rgba(0,0,0,.35); position: relative; overflow: hidden; }
+.setup::before { content: ""; position: absolute; inset: 0 0 auto; height: 12px; background: repeating-linear-gradient(90deg, var(--money) 0 40px, var(--paper) 40px 46px); }
+.setup .logo { font-family: var(--font-poster); font-size: clamp(20px, 5.6vw, 34px); letter-spacing: 0; border-color: var(--paper); box-shadow: 0 0 0 3px var(--money), 6px 6px 0 3px var(--ink); display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+.setup .logo svg { width: 1.2em; height: 1.2em; flex: none; }
+.setup .gost { font-family: var(--font-type); font-size: 12px; color: var(--muted); text-align: center; }
+.seg button { border-radius: 2px; border: 2px solid var(--ink); background: #fffaf0; font-family: var(--font-display); font-size: 18px; }
+.seg button[aria-pressed="true"] { background: var(--money); color: #fff; border-color: var(--ink); }
+.dlg { border-radius: 2px; border: 2px solid var(--ink); box-shadow: 8px 8px 0 rgba(0,0,0,.4); background-color: var(--paper); }
+.dlg h2 { font-family: var(--font-poster); font-size: 17px; color: var(--money); letter-spacing: 0; }
+.deed { border-radius: 0; background: #fffaf0; }
+.deed .top small { font-family: var(--font-type); }
+.cardshow { border-radius: 0; border: .3cqw solid var(--ink); background: #fffaf0; box-shadow: 1cqw 1cqw 0 rgba(35,26,20,.5); }
+.cardshow b { font-family: var(--font-poster); font-size: max(11px, 1.8cqw); }
+.tok { border-radius: 30% 30% 50% 50%; }
+.money-big { font-family: var(--font-type); }
+
+@keyframes wob { 0% { transform: rotate(-8deg); } 50% { transform: rotate(8deg); } 100% { transform: rotate(-8deg); } }
+@keyframes pop { from { transform: scale(.94); opacity: .5; } to { transform: scale(1); opacity: 1; } }
+.cardshow { animation-name: popc; }
+@keyframes popc { from { opacity: 0; transform: translate(-50%, -46%); } to { opacity: 1; transform: translate(-50%, -50%); } }
+@container (max-width: 600px) {
+  .cell:not(.corner) .nm { display: none; }
+  .cell .ic { font-size: 3cqw; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .die.rolling { animation: none; }
+  .dlg, .cardshow { animation: none; }
+}
+
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+html, body { margin: 0; }
+img { max-width: 100%; }
+.install { display: grid; gap: 6px; justify-items: center; text-align: center; }
+.install .gost { margin: 0; }
+</style>
+</head>
+<body>
+<main class="app">
+  <section class="setup" id="setup">
+    <div class="logo"><svg viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,4 61,38 97,38 68,59 79,94 50,72 21,94 32,59 3,38 39,38" fill="#e2b33c" stroke="#fff" stroke-width="3"/></svg>Столичный капитал</div>
+    <p class="gost">Настольная экономическая игра · кооператив «Прогресс» · Москва, 1991</p>
+    <p>Экономическая игра с улицами Москвы, как в настольных играх начала 90-х. Покупайте улицы, стройте дома и отели, разоряйте соперников.</p>
+    <div><label for="nameIn">Ваше имя</label><input id="nameIn" maxlength="16" value="Игрок" autocomplete="off"></div>
+    <div><label>Игроков за столом (вы и соперники-компьютеры)</label>
+      <div class="seg" id="oppSeg"><button type="button" data-n="1">2</button><button type="button" data-n="2">3</button><button type="button" data-n="3" aria-pressed="true">4</button><button type="button" data-n="4">5</button><button type="button" data-n="5">6</button></div>
+    </div>
+    <ul>
+      <li>У каждого 1500 руб. За проход поля «Вперёд» банк платит 200 руб.</li>
+      <li>Не купили улицу — она уходит с аукциона. Вся цветная группа удваивает аренду и даёт право строить: дома ставятся равномерно, после четырёх домов — отель.</li>
+      <li>Дубль даёт ещё бросок, три дубля подряд ведут в тюрьму. Из тюрьмы: 50 руб., карточка или дубль за три попытки.</li>
+      <li>Недвижимость можно закладывать банку за полцены и выкупать с 10 %. Обменивайтесь с соперниками.</li>
+      <li>Кто не может заплатить, становится банкротом. Побеждает последний оставшийся.</li>
+    </ul>
+    <div class="row"><button class="btn" id="startBtn" type="button">Новая игра</button><button class="btn alt" id="resumeBtn" type="button" hidden>Продолжить партию</button></div>
+    <p class="gost" id="saveInfo" hidden></p>
+    <div class="install" id="installBox" hidden><button class="btn ghost" id="installBtn" type="button">Установить на телефон</button><p class="gost" id="installHint"></p></div>
+  </section>
+
+  <section id="game" hidden>
+    <div class="layout">
+      <div class="boardwrap"><div class="board" id="board">
+        <div class="center" id="center">
+          <div class="pile chance">Шанс</div>
+          <div class="pile chest">Казна</div>
+          <svg class="bigstar" viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,4 61,38 97,38 68,59 79,94 50,72 21,94 32,59 3,38 39,38" fill="#c4161c"/></svg>
+          <div class="stamp">Столичный<br>капитал<small>экономическая игра</small></div>
+          <div class="pricetag">Цена договорная</div>
+          <div class="madein">Кооператив «Прогресс»<br>Москва · 1991<br>ТУ 25-7716-91</div>
+          <div class="centerinfo">
+            <div class="dice"><div class="die" id="d1"></div><div class="die" id="d2"></div></div>
+            <div class="status" id="status">Бросайте кубики</div>
+          </div>
+          <div id="cardSlot"></div>
+        </div>
+      </div></div>
+      <div class="desk">
+        <div class="panel"><div class="toolbar"><button class="btn ghost sm" id="speedBtn" type="button">Темп: обычный</button><button class="btn ghost sm" id="quitBtn" type="button">Новая игра</button></div></div>
+        <div class="panel"><h3>Игроки</h3><div class="players" id="players"></div></div>
+        <div class="panel act" id="act"></div>
+        <div class="panel"><h3>Ход игры</h3><ul class="log" id="log"></ul></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="overlay" id="modal" hidden><div class="dlg" id="dlg"></div></div>
+
+<script>
+(() => {
+  const GC = ['#8b4a2b', '#9fd4f2', '#d93a96', '#f39a1e', '#e0262b', '#f6e21b', '#1f9e48', '#1d4fa0'];
+  const B = [
+    { n: 'Вперёд', s: 'Вперёд', t: 'go' },
+    { n: 'Житная улица', s: 'Житная', g: 0, p: 60, r: [2, 10, 30, 90, 160, 250], h: 50 },
+    { n: 'Общественная казна', s: 'Казна', t: 'chest' },
+    { n: 'Нагатинская улица', s: 'Нагатинская', g: 0, p: 60, r: [4, 20, 60, 180, 320, 450], h: 50 },
+    { n: 'Подоходный налог', s: 'Подоходный налог', t: 'tax', p: 200 },
+    { n: 'Рижская железная дорога', s: 'Рижская ж/д', t: 'rail', p: 200 },
+    { n: 'Варшавское шоссе', s: 'Варшавское ш.', g: 1, p: 100, r: [6, 30, 90, 270, 400, 550], h: 50 },
+    { n: 'Шанс', s: 'Шанс', t: 'chance' },
+    { n: 'Улица Огарёва', s: 'Ул. Огарёва', g: 1, p: 100, r: [6, 30, 90, 270, 400, 550], h: 50 },
+    { n: 'Первая Парковая улица', s: '1-я Парковая', g: 1, p: 120, r: [8, 40, 100, 300, 450, 600], h: 50 },
+    { n: 'Тюрьма', s: 'Тюрьма', t: 'jail' },
+    { n: 'Улица Полянка', s: 'Полянка', g: 2, p: 140, r: [10, 50, 150, 450, 625, 750], h: 100 },
+    { n: 'Электростанция', s: 'Электро­станция', t: 'util', p: 150 },
+    { n: 'Улица Сретенка', s: 'Сретенка', g: 2, p: 140, r: [10, 50, 150, 450, 625, 750], h: 100 },
+    { n: 'Ростовская набережная', s: 'Ростовская наб.', g: 2, p: 160, r: [12, 60, 180, 500, 700, 900], h: 100 },
+    { n: 'Курская железная дорога', s: 'Курская ж/д', t: 'rail', p: 200 },
+    { n: 'Рязанский проспект', s: 'Рязанский пр.', g: 3, p: 180, r: [14, 70, 200, 550, 750, 950], h: 100 },
+    { n: 'Общественная казна', s: 'Казна', t: 'chest' },
+    { n: 'Улица Вавилова', s: 'Вавилова', g: 3, p: 180, r: [14, 70, 200, 550, 750, 950], h: 100 },
+    { n: 'Рублёвское шоссе', s: 'Рублёвское ш.', g: 3, p: 200, r: [16, 80, 220, 600, 800, 1000], h: 100 },
+    { n: 'Бесплатная стоянка', s: 'Бесплатная стоянка', t: 'parking' },
+    { n: 'Улица Тверская', s: 'Тверская', g: 4, p: 220, r: [18, 90, 250, 700, 875, 1050], h: 150 },
+    { n: 'Шанс', s: 'Шанс', t: 'chance' },
+    { n: 'Пушкинская улица', s: 'Пушкинская', g: 4, p: 220, r: [18, 90, 250, 700, 875, 1050], h: 150 },
+    { n: 'Площадь Маяковского', s: 'Пл. Маяковского', g: 4, p: 240, r: [20, 100, 300, 750, 925, 1100], h: 150 },
+    { n: 'Казанская железная дорога', s: 'Казанская ж/д', t: 'rail', p: 200 },
+    { n: 'Улица Грузинский вал', s: 'Грузинский вал', g: 5, p: 260, r: [22, 110, 330, 800, 975, 1150], h: 150 },
+    { n: 'Новинский бульвар', s: 'Новинский б-р', g: 5, p: 260, r: [22, 110, 330, 800, 975, 1150], h: 150 },
+    { n: 'Водопровод', s: 'Водопровод', t: 'util', p: 150 },
+    { n: 'Смоленская площадь', s: 'Смоленская пл.', g: 5, p: 280, r: [24, 120, 360, 850, 1025, 1200], h: 150 },
+    { n: 'Отправляйтесь в тюрьму', s: 'В тюрьму!', t: 'gojail' },
+    { n: 'Улица Щусева', s: 'Щусева', g: 6, p: 300, r: [26, 130, 390, 900, 1100, 1275], h: 200 },
+    { n: 'Гоголевский бульвар', s: 'Гоголевский б-р', g: 6, p: 300, r: [26, 130, 390, 900, 1100, 1275], h: 200 },
+    { n: 'Общественная казна', s: 'Казна', t: 'chest' },
+    { n: 'Кутузовский проспект', s: 'Кутузовский пр.', g: 6, p: 320, r: [28, 150, 450, 1000, 1200, 1400], h: 200 },
+    { n: 'Ленинградская железная дорога', s: 'Ленинград­ская ж/д', t: 'rail', p: 200 },
+    { n: 'Шанс', s: 'Шанс', t: 'chance' },
+    { n: 'Улица Малая Бронная', s: 'Малая Бронная', g: 7, p: 350, r: [35, 175, 500, 1100, 1300, 1500], h: 200 },
+    { n: 'Сверхналог', s: 'Сверхналог', t: 'tax', p: 100 },
+    { n: 'Улица Арбат', s: 'Арбат', g: 7, p: 400, r: [50, 200, 600, 1400, 1700, 2000], h: 200 },
+  ];
+  B.forEach((c, i) => { c.i = i; if (c.g != null) c.t = 'street'; });
+  const BUY = c => c.t === 'street' || c.t === 'rail' || c.t === 'util';
+  const GROUPS = GC.map((_, g) => B.filter(c => c.g === g).map(c => c.i));
+  const RAILS = [5, 15, 25, 35], UTILS = [12, 28];
+
+  const CHANCE = [
+    { t: 'Отправляйтесь на поле «Вперёд». Получите 200 руб.', a: 'goto', to: 0 },
+    { t: 'Отправляйтесь на улицу Арбат.', a: 'goto', to: 39 },
+    { t: 'Отправляйтесь на площадь Маяковского. Если проходите «Вперёд», получите 200 руб.', a: 'goto', to: 24 },
+    { t: 'Отправляйтесь на улицу Полянка. Если проходите «Вперёд», получите 200 руб.', a: 'goto', to: 11 },
+    { t: 'Поезжайте на Рижскую железную дорогу. Если проходите «Вперёд», получите 200 руб.', a: 'goto', to: 5 },
+    { t: 'Отправляйтесь на ближайшую железную дорогу. Если она чужая, заплатите владельцу двойную аренду. Свободную можно купить.', a: 'rail' },
+    { t: 'Отправляйтесь на ближайшую железную дорогу. Если она чужая, заплатите владельцу двойную аренду. Свободную можно купить.', a: 'rail' },
+    { t: 'Отправляйтесь к ближайшему предприятию. Если оно чужое, бросьте кубики и заплатите владельцу в 10 раз больше выпавшего.', a: 'util' },
+    { t: 'Банк выплачивает вам дивиденды: 50 руб.', a: 'money', v: 50 },
+    { t: 'Бесплатное освобождение из тюрьмы. Карточку можно сохранить или продать.', a: 'jailcard' },
+    { t: 'Вернитесь на три поля назад.', a: 'back' },
+    { t: 'Отправляйтесь в тюрьму. Поле «Вперёд» не проходите, 200 руб. не получайте.', a: 'jail' },
+    { t: 'Капитальный ремонт всей недвижимости: 25 руб. за каждый дом и 100 руб. за каждый отель.', a: 'repair', hh: 25, ho: 100 },
+    { t: 'Штраф ГАИ за превышение скорости: 15 руб.', a: 'money', v: -15 },
+    { t: 'Вас избрали председателем правления. Заплатите каждому игроку по 50 руб.', a: 'each', v: -50 },
+    { t: 'Ваш кредит на строительство погашен. Получите 150 руб.', a: 'money', v: 150 },
+  ];
+  const CHEST = [
+    { t: 'Отправляйтесь на поле «Вперёд». Получите 200 руб.', a: 'goto', to: 0 },
+    { t: 'Ошибка банка в вашу пользу. Получите 200 руб.', a: 'money', v: 200 },
+    { t: 'Оплата услуг врача: 50 руб.', a: 'money', v: -50 },
+    { t: 'Вы удачно обменяли ваучер. Получите 50 руб.', a: 'money', v: 50 },
+    { t: 'Бесплатное освобождение из тюрьмы. Карточку можно сохранить или продать.', a: 'jailcard' },
+    { t: 'Отправляйтесь в тюрьму. Поле «Вперёд» не проходите, 200 руб. не получайте.', a: 'jail' },
+    { t: 'Созрел праздничный вклад в сберкассе. Получите 100 руб.', a: 'money', v: 100 },
+    { t: 'Возврат подоходного налога: 20 руб.', a: 'money', v: 20 },
+    { t: 'У вас день рождения! Каждый игрок дарит вам 10 руб.', a: 'each', v: 10 },
+    { t: 'Выплата по страхованию жизни: 100 руб.', a: 'money', v: 100 },
+    { t: 'Оплата больницы: 100 руб.', a: 'money', v: -100 },
+    { t: 'Плата за обучение: 50 руб.', a: 'money', v: -50 },
+    { t: 'Гонорар за консультацию: 25 руб.', a: 'money', v: 25 },
+    { t: 'Ремонт улиц: 40 руб. за каждый дом и 115 руб. за каждый отель.', a: 'repair', hh: 40, ho: 115 },
+    { t: 'Второе место на конкурсе красоты: 10 руб.', a: 'money', v: 10 },
+    { t: 'Вы получили наследство: 100 руб.', a: 'money', v: 100 },
+  ];
+  const AI_PEOPLE = [
+    { name: 'Толик', tag: 'кооператор' }, { name: 'Света', tag: 'брокер' }, { name: 'Гена', tag: 'челнок' },
+    { name: 'Петрович', tag: 'директор рынка' }, { name: 'Жанна', tag: 'ларёчница' }, { name: 'Михалыч', tag: 'завхоз' },
+  ];
+  const TOKEN_COLORS = ['#c4161c', '#1d63c9', '#e09000', '#6b2fb3', '#138a5c', '#3b3b3b'];
+
+  const $ = s => document.querySelector(s);
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  let fast = false;
+  const wait = ms => { const g = GAME_ID; return sleep(fast ? ms * .4 : ms).then(() => (g === GAME_ID ? undefined : new Promise(() => {}))); };
+  const rub = n => n.toLocaleString('ru-RU') + ' руб.';
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const rnd = a => a[Math.floor(Math.random() * a.length)];
+
+  let S = null;
+  let GAME_ID = 0;
+
+  /* ---------- rules helpers ---------- */
+  const P = id => S.players[id];
+  const alive = () => S.players.filter(p => !p.bankrupt);
+  const owned = p => B.filter(c => BUY(c) && c.owner === p.id);
+  const ownsGroup = (p, g) => GROUPS[g].every(i => B[i].owner === p.id);
+  const groupHouses = g => GROUPS[g].map(i => B[i].houses);
+  const groupClear = g => GROUPS[g].every(i => B[i].houses === 0);
+  const countOwned = (p, list) => list.filter(i => B[i].owner === p.id).length;
+
+  function canBuild(p, c) {
+    if (c.t !== 'street' || c.owner !== p.id || !ownsGroup(p, c.g)) return false;
+    if (GROUPS[c.g].some(i => B[i].mort)) return false;
+    if (c.houses >= 5 || c.houses !== Math.min(...groupHouses(c.g))) return false;
+    if (c.houses === 4 ? S.hotelsLeft < 1 : S.housesLeft < 1) return false;
+    return p.money >= c.h;
+  }
+  function canSell(c) { return c.t === 'street' && c.houses > 0 && c.houses === Math.max(...groupHouses(c.g)); }
+  function canMortgage(c) { return BUY(c) && !c.mort && (c.t !== 'street' || groupClear(c.g)); }
+  const unmortCost = c => Math.ceil(c.p / 2 * 1.1);
+  const tradable = c => BUY(c) && (c.t !== 'street' || groupClear(c.g));
+
+  function build(p, c) {
+    p.money -= c.h;
+    if (c.houses === 4) { c.houses = 5; S.hotelsLeft--; S.housesLeft += 4; }
+    else { c.houses++; S.housesLeft--; }
+  }
+  function sellHouse(p, c) {
+    if (c.houses === 5) {
+      if (S.housesLeft >= 4) { c.houses = 4; S.hotelsLeft++; S.housesLeft -= 4; p.money += c.h / 2; }
+      else { c.houses = 0; S.hotelsLeft++; p.money += c.h / 2 * 5; }
+    } else { c.houses--; S.housesLeft++; p.money += c.h / 2; }
+  }
+  function mortgage(p, c) { c.mort = true; p.money += c.p / 2; }
+  function unmortgage(p, c) { p.money -= unmortCost(c); c.mort = false; }
+
+  function rentFor(c, dice, opt = {}) {
+    const o = P(c.owner);
+    if (c.t === 'street') return c.houses ? c.r[c.houses] : (ownsGroup(o, c.g) ? c.r[0] * 2 : c.r[0]);
+    if (c.t === 'rail') { const n = countOwned(o, RAILS); return 25 * 2 ** (n - 1) * (opt.railDouble ? 2 : 1); }
+    const n = countOwned(o, UTILS);
+    return (opt.utilTen ? 10 : n === 2 ? 10 : 4) * dice;
+  }
+  function netWorth(p) {
+    return p.money + owned(p).reduce((s, c) => s + (c.mort ? c.p / 2 : c.p) + (c.t === 'street' ? c.houses * c.h : 0), 0);
+  }
+
+  /* ---------- board rendering ---------- */
+  function gridPos(i) {
+    if (i === 0) return [11, 11];
+    if (i < 10) return [11, 11 - i];
+    if (i === 10) return [11, 1];
+    if (i < 20) return [11 - (i - 10), 1];
+    if (i === 20) return [1, 1];
+    if (i < 30) return [1, 1 + (i - 20)];
+    if (i === 30) return [1, 11];
+    return [1 + (i - 30), 11];
+  }
+  const side = i => (i % 10 === 0 ? 'corner' : i < 10 ? 'bottom' : i < 20 ? 'left' : i < 30 ? 'top' : 'right');
+  const ICONS = { go: '←', chest: 'Казна', chance: '?', tax: '%', rail: '⇋', util: '', jail: '▦', parking: 'P', gojail: '↗' };
+  function buildBoard() {
+    const board = $('#board');
+    board.querySelectorAll('.cell').forEach(e => e.remove());
+    B.forEach(c => {
+      const el = document.createElement('div');
+      const sd = side(c.i);
+      el.className = 'cell ' + sd + (sd === 'corner' ? '' : '');
+      const [r, col] = gridPos(c.i);
+      el.style.gridArea = `${r} / ${col}`;
+      let ic = ICONS[c.t] || '';
+      if (c.t === 'util') ic = c.i === 12 ? 'ϟ' : '≈';
+      if (c.t === 'chest') ic = '▣';
+      el.innerHTML = (c.t === 'street' ? `<div class="bar" style="background:${GC[c.g]}"></div>` : '') +
+        `<div class="body"><span class="nm">${c.s}</span>${c.t !== 'street' ? `<span class="ic">${ic}</span>` : ''}<span class="pr">${c.p ? c.p + ' р.' : ''}</span></div>` +
+        `<div class="own"></div><div class="hs"></div><div class="toks"></div>`;
+      el.addEventListener('click', () => { if ($('#modal').hidden) showDeed(c); });
+      c.el = el;
+      board.appendChild(el);
+    });
+  }
+  function renderBoard() {
+    B.forEach(c => {
+      if (BUY(c)) {
+        c.el.classList.toggle('owned', c.owner != null);
+        c.el.classList.toggle('mort', !!c.mort);
+        if (c.owner != null) c.el.style.setProperty('--oc', P(c.owner).color);
+        if (c.t === 'street') c.el.querySelector('.hs').innerHTML = c.houses === 5 ? '<i class="hotel"></i>' : '<i class="house"></i>'.repeat(c.houses);
+      }
+      c.el.querySelector('.toks').innerHTML = S.players.filter(p => !p.bankrupt && p.pos === c.i)
+        .map(p => `<span class="tok${p.jail ? ' jailed' : ''}" style="--tc:${p.color}" title="${esc(p.name)}">${esc(p.name[0])}</span>`).join('');
+    });
+  }
+  function renderPlayers() {
+    $('#players').innerHTML = S.players.map(p => {
+      const chips = owned(p).map(c => {
+        if (c.t === 'street') return `<span class="chipp${c.mort ? ' m' : ''}" style="background:${GC[c.g]}" title="${c.n}">${c.houses ? `<b>${c.houses === 5 ? 'О' : c.houses}</b>` : ''}</span>`;
+        return `<span class="chipp ${c.t === 'rail' ? 'r' : 'u'}${c.mort ? ' m' : ''}" title="${c.n}">${c.t === 'rail' ? 'Ж' : 'П'}</span>`;
+      }).join('');
+      const tags = [p.human ? 'вы' : p.tag, p.jail ? 'в тюрьме' : '', p.cards.length ? `карточек: ${p.cards.length}` : ''].filter(Boolean).join(', ');
+      return `<div class="pl${S.cur === p.id ? ' active' : ''}${p.bankrupt ? ' bk' : ''}" style="--tc:${p.color}">
+        <span class="dot"></span><span class="nm">${esc(p.name)} <small>${tags}</small></span><span class="cash">${p.bankrupt ? 'банкрот' : rub(p.money)}</span>
+        <div class="chips">${chips}</div></div>`;
+    }).join('');
+  }
+  function render() { renderBoard(); renderPlayers(); }
+  function log(html) {
+    const li = document.createElement('li');
+    li.innerHTML = html;
+    const ul = $('#log');
+    ul.prepend(li);
+    while (ul.children.length > 80) ul.lastChild.remove();
+  }
+  function status(t) { $('#status').innerHTML = t; }
+
+  const PIPS = { 1: [5], 2: [1, 9], 3: [1, 5, 9], 4: [1, 3, 7, 9], 5: [1, 3, 5, 7, 9], 6: [1, 3, 4, 6, 7, 9] };
+  function drawDie(el, n) { el.innerHTML = Array.from({ length: 9 }, (_, k) => `<i class="${PIPS[n].includes(k + 1) ? 'on' : ''}"></i>`).join(''); }
+  async function rollDice() {
+    const a = $('#d1'), b = $('#d2');
+    a.classList.add('rolling'); b.classList.add('rolling');
+    for (let k = 0; k < 7; k++) { drawDie(a, 1 + Math.floor(Math.random() * 6)); drawDie(b, 1 + Math.floor(Math.random() * 6)); await wait(60); }
+    const d = [1 + Math.floor(Math.random() * 6), 1 + Math.floor(Math.random() * 6)];
+    drawDie(a, d[0]); drawDie(b, d[1]);
+    a.classList.remove('rolling'); b.classList.remove('rolling');
+    return d;
+  }
+
+  /* ---------- deed & modal ---------- */
+  function deedHTML(c, hi) {
+    const head = c.t === 'street' ? `background:${GC[c.g]};color:${[1, 5].includes(c.g) ? '#18221c' : '#fff'}` : 'background:#fff';
+    let rows = '';
+    if (c.t === 'street') {
+      const lbl = ['Аренда', 'С 1 домом', 'С 2 домами', 'С 3 домами', 'С 4 домами', 'С отелем'];
+      rows = c.r.map((v, k) => `<tr class="${hi === k ? 'hi' : ''}"><td>${lbl[k]}</td><td>${rub(v)}</td></tr>`).join('') +
+        `<tr><td>Дом</td><td>${rub(c.h)}</td></tr><tr><td>Отель</td><td>${rub(c.h)} + 4 дома</td></tr>`;
+    } else if (c.t === 'rail') {
+      rows = [25, 50, 100, 200].map((v, k) => `<tr><td>${k + 1} ж/д у владельца</td><td>${rub(v)}</td></tr>`).join('');
+    } else {
+      rows = '<tr><td>Одно предприятие</td><td>4 × кубики</td></tr><tr><td>Оба предприятия</td><td>10 × кубики</td></tr>';
+    }
+    const owner = c.owner != null ? `Владелец: ${esc(P(c.owner).name)}${c.mort ? ' (заложено)' : ''}` : 'Принадлежит банку';
+    return `<div class="deed"><div class="top" style="${head}"><small>Документ на право собственности</small><b>${c.n}</b></div>
+      <table>${rows}</table>
+      <div class="foot">Цена ${rub(c.p)} · Залог ${rub(c.p / 2)}${c.t === 'street' ? '<br>Вся группа удваивает аренду пустых участков' : ''}<br>${owner}</div></div>`;
+  }
+  let modalOpen = false;
+  function openDlg(html) { $('#dlg').innerHTML = html; $('#modal').hidden = false; modalOpen = true; }
+  function closeDlg() { $('#modal').hidden = true; modalOpen = false; }
+  function ask(html, buttons) {
+    return new Promise(res => {
+      openDlg(html + `<div class="actions">${buttons.map((b, k) => `<button class="btn${b.cls ? ' ' + b.cls : ''}" type="button" data-k="${k}"${b.disabled ? ' disabled' : ''}>${b.label}</button>`).join('')}</div>`);
+      $('#dlg').querySelectorAll('.actions .btn').forEach(el => el.onclick = () => { closeDlg(); res(buttons[+el.dataset.k].v); });
+      const first = $('#dlg').querySelector('.actions .btn:not(:disabled)');
+      if (first) first.focus();
+    });
+  }
+  function showDeed(c) {
+    if (!S || !BUY(c)) {
+      const txt = { go: 'Каждый раз, проходя это поле, получайте 200 руб.', chest: 'Возьмите карточку «Общественная казна».', chance: 'Возьмите карточку «Шанс».', tax: `Заплатите банку ${rub(c.p || 0)}.`, jail: 'Тюрьма. Если вы просто проходили мимо, вы «просто посетили».', parking: 'Здесь можно спокойно постоять. Ничего не происходит.', gojail: 'Отправляйтесь прямо в тюрьму, не проходя «Вперёд».' }[c.t];
+      if (S) ask(`<h2>${c.n}</h2><p>${txt}</p>`, [{ label: 'Закрыть', v: 0, cls: 'ghost' }]);
+      return;
+    }
+    ask(deedHTML(c), [{ label: 'Закрыть', v: 0, cls: 'ghost' }]);
+  }
+
+  /* ---------- human desk ---------- */
+  const act = $('#act');
+  function menu(items, note) {
+    const gid = GAME_ID;
+    return new Promise(res => {
+      const me = S.players[0];
+      const draw = () => {
+        if (gid !== GAME_ID) return;
+        const vis = items.filter(it => !it.hidden || !it.hidden());
+        act.innerHTML = `<p class="note">${note || ''}</p>
+          <div class="row">${vis.map((it, k) => `<button class="btn${it.cls ? ' ' + it.cls : ''}" type="button" data-k="${k}"${it.disabled && it.disabled() ? ' disabled' : ''}>${it.label}</button>`).join('')}</div>
+          <div class="row"><button class="btn ghost sm" type="button" id="mgBtn">Мои владения</button><button class="btn ghost sm" type="button" id="trBtn">Предложить обмен</button></div>`;
+        act.querySelectorAll('.row:first-of-type .btn').forEach(el => el.onclick = () => { act.innerHTML = ''; res(vis[+el.dataset.k].v); });
+        $('#mgBtn').onclick = async () => { await manage(me); render(); draw(); };
+        $('#trBtn').onclick = async () => { await tradeDialog(me); render(); draw(); };
+        const f = act.querySelector('.row:first-of-type .btn:not(:disabled)'); if (f) f.focus();
+      };
+      draw();
+    });
+  }
+  function busy(text) { act.innerHTML = `<p class="note">${text}</p>`; }
+
+  function manage(p, debt = 0) {
+    return new Promise(res => {
+      const draw = () => {
+        const list = owned(p).sort((a, b) => a.i - b.i);
+        const rows = list.map(c => {
+          const st = c.mort ? 'заложено' : c.t === 'street' ? (c.houses === 5 ? 'отель' : c.houses ? `домов: ${c.houses}` : ownsGroup(p, c.g) ? 'вся группа' : 'участок') : c.t === 'rail' ? 'железная дорога' : 'предприятие';
+          const ctl = [];
+          if (c.t === 'street' && !debt) ctl.push(`<button class="btn alt sm" data-a="b" data-i="${c.i}"${canBuild(p, c) ? '' : ' disabled'}>+ ${c.houses === 4 ? 'отель' : 'дом'} ${c.h}</button>`);
+          if (c.t === 'street' && c.houses) ctl.push(`<button class="btn ghost sm" data-a="s" data-i="${c.i}"${canSell(c) ? '' : ' disabled'}>Продать ${c.houses === 5 ? 'отель' : 'дом'} +${c.h / 2}</button>`);
+          if (c.mort) { if (!debt) ctl.push(`<button class="btn sm" data-a="u" data-i="${c.i}"${p.money >= unmortCost(c) ? '' : ' disabled'}>Выкупить ${unmortCost(c)}</button>`); }
+          else ctl.push(`<button class="btn ghost sm" data-a="m" data-i="${c.i}"${canMortgage(c) ? '' : ' disabled'}>Заложить +${c.p / 2}</button>`);
+          return `<div class="mgrow"><span class="sw" style="background:${c.t === 'street' ? GC[c.g] : '#999'}"></span><div class="info"><b>${c.n}</b><small>${st}</small></div><div class="ctl">${ctl.join('')}</div></div>`;
+        }).join('') || '<p>У вас пока нет недвижимости.</p>';
+        const head = debt
+          ? `<h2>Нужно заплатить ${rub(debt)}</h2><p>Продайте дома или заложите недвижимость. Если денег не хватит, придётся объявить банкротство.</p>`
+          : `<h2>Мои владения</h2><p>Дома ставятся равномерно по группе. В банке осталось домов: ${S.housesLeft}, отелей: ${S.hotelsLeft}.</p>`;
+        $('#dlg').innerHTML = `${head}<div class="money-big">На руках: ${rub(p.money)}</div><div>${rows}</div>
+          <div class="actions">${debt ? `<button class="btn ghost" id="mgBk" type="button">Объявить банкротство</button><button class="btn" id="mgPay" type="button"${p.money >= debt ? '' : ' disabled'}>Заплатить</button>` : '<button class="btn" id="mgDone" type="button">Готово</button>'}</div>`;
+        $('#dlg').querySelectorAll('.ctl .btn').forEach(b => b.onclick = () => {
+          const c = B[+b.dataset.i];
+          if (b.dataset.a === 'b' && canBuild(p, c)) { build(p, c); log(`${esc(p.name)} строит ${c.houses === 5 ? 'отель' : 'дом'}: ${c.n}`); }
+          if (b.dataset.a === 's' && canSell(c)) { sellHouse(p, c); log(`${esc(p.name)} продаёт постройку: ${c.n}`); }
+          if (b.dataset.a === 'm' && canMortgage(c)) { mortgage(p, c); log(`${esc(p.name)} закладывает ${c.n}`); }
+          if (b.dataset.a === 'u' && c.mort && p.money >= unmortCost(c)) { unmortgage(p, c); log(`${esc(p.name)} выкупает ${c.n}`); }
+          render(); draw();
+        });
+        if (debt) {
+          $('#mgPay').onclick = () => { closeDlg(); res('pay'); };
+          $('#mgBk').onclick = () => { closeDlg(); res('bankrupt'); };
+        } else $('#mgDone').onclick = () => { closeDlg(); res(); };
+      };
+      openDlg('');
+      draw();
+    });
+  }
+
+  /* ---------- AI ---------- */
+  function groupStake(p, c) {
+    if (c.t !== 'street') return 0;
+    const g = GROUPS[c.g];
+    return g.filter(i => B[i].owner === p.id).length / g.length;
+  }
+  const wouldComplete = (p, c) => c.t === 'street' && GROUPS[c.g].every(i => i === c.i || B[i].owner === p.id);
+  function blocksOther(p, c) {
+    if (c.t !== 'street') return false;
+    return S.players.some(o => o !== p && !o.bankrupt && wouldComplete(o, c));
+  }
+  function aiValue(p, c) {
+    let v = c.p;
+    if (c.t === 'street') {
+      if (wouldComplete(p, c)) v *= 2.2;
+      else if (groupStake(p, c) > 0) v *= 1.3;
+      if (blocksOther(p, c)) v *= 1.35;
+    } else if (c.t === 'rail') v *= 1 + .2 * countOwned(p, RAILS);
+    else v *= .85;
+    return v;
+  }
+  function aiWantsBuy(p, c) {
+    if (p.money < c.p) return false;
+    if (wouldComplete(p, c) || blocksOther(p, c)) return true;
+    return p.money - c.p >= 120;
+  }
+  function aiMaxBid(p, c) {
+    const v = aiValue(p, c) * (.8 + Math.random() * .3);
+    return Math.max(0, Math.min(p.money - 40, Math.round(v)));
+  }
+  function aiRaise(p, amount) {
+    for (let guard = 0; guard < 80 && p.money < amount; guard++) {
+      const sell = owned(p).filter(canSell).sort((a, b) => a.h - b.h)[0];
+      if (sell) { sellHouse(p, sell); log(`${esc(p.name)} продаёт постройку: ${sell.n}`); continue; }
+      const m = owned(p).filter(canMortgage).sort((a, b) => aiValue(p, a) - aiValue(p, b))[0];
+      if (m) { mortgage(p, m); log(`${esc(p.name)} закладывает ${m.n}`); continue; }
+      break;
+    }
+    render();
+  }
+  function aiManage(p) {
+    for (let k = 0; k < 10; k++) {
+      const m = owned(p).filter(c => c.mort && p.money - unmortCost(c) > 450).sort((a, b) => b.p - a.p)[0];
+      if (!m) break;
+      unmortgage(p, m); log(`${esc(p.name)} выкупает ${m.n}`);
+    }
+    for (let k = 0; k < 40; k++) {
+      const opts = owned(p).filter(c => canBuild(p, c) && p.money - c.h >= 220).sort((a, b) => a.houses - b.houses || b.g - a.g);
+      if (!opts.length) break;
+      build(p, opts[0]);
+      log(`${esc(p.name)} строит ${opts[0].houses === 5 ? 'отель' : 'дом'}: ${opts[0].n}`);
+    }
+    render();
+  }
+  function aiJail(p) {
+    const free = B.filter(c => BUY(c) && c.owner == null).length;
+    if (free > 8) { if (p.cards.length) return 'card'; if (p.money >= 250) return 'pay'; }
+    return 'roll';
+  }
+  function aiEvalTrade(ai, me, give, get, giveMoney, getMoney) {
+    // give/get from the human's point of view: ai receives `give` and giveMoney, pays `get` and getMoney
+    let gain = giveMoney, loss = getMoney;
+    give.forEach(c => { gain += (c.mort ? c.p * .45 : 0) + aiValueAfter(ai, c, give); });
+    get.forEach(c => { loss += aiValue(ai, c) + (completesFor(me, c, get) ? c.p * 2 : 0); });
+    return ai.money - getMoney >= 0 && gain >= loss * 1.12 + 10;
+  }
+  function aiValueAfter(p, c, incoming) {
+    let v = c.mort ? c.p * .5 : c.p;
+    if (c.t === 'street') {
+      const g = GROUPS[c.g];
+      if (g.every(i => B[i].owner === p.id || incoming.some(x => x.i === i))) v *= 2.4;
+      else if (groupStake(p, c) > 0) v *= 1.3;
+    } else if (c.t === 'rail') v *= 1 + .2 * countOwned(p, RAILS);
+    return v;
+  }
+  function completesFor(p, c, incoming) {
+    return c.t === 'street' && GROUPS[c.g].every(i => B[i].owner === p.id || incoming.some(x => x.i === i));
+  }
+  async function aiOffer(ai) {
+    const me = S.players[0];
+    if (me.bankrupt || Math.random() > .35) return;
+    for (const g of GROUPS) {
+      const mine = g.filter(i => B[i].owner === ai.id).length;
+      const theirs = g.filter(i => B[i].owner === me.id);
+      if (mine !== g.length - 1 || theirs.length !== 1) continue;
+      const c = B[theirs[0]];
+      if (!groupClear(c.g)) continue;
+      const key = ai.id + ':' + c.i;
+      if (S.declined[key] && S.turn - S.declined[key] < 12) continue;
+      const offer = Math.round(c.p * (1.5 + Math.random() * .6) / 10) * 10;
+      if (ai.money < offer + 150) continue;
+      const ans = await ask(`<h2>Предложение от ${esc(ai.name)}</h2><p>${esc(ai.name)} хочет купить у вас <b>${c.n}</b> за <b>${rub(offer)}</b>. Учтите: тогда у игрока будет вся группа.</p>${deedHTML(c)}`,
+        [{ label: 'Отказаться', v: false, cls: 'ghost' }, { label: 'Продать', v: true }]);
+      if (ans) {
+        await transferProps(me, ai, [c]);
+        ai.money -= offer; me.money += offer;
+        log(`${esc(me.name)} продаёт ${c.n} игроку ${esc(ai.name)} за ${rub(offer)}`);
+        render();
+      } else { S.declined[key] = S.turn; log(`${esc(me.name)} отказывается продать ${c.n}`); }
+      return;
+    }
+  }
+
+  /* ---------- trade dialog ---------- */
+  function tradeDialog(me) {
+    return new Promise(res => {
+      const others = S.players.filter(p => !p.human && !p.bankrupt);
+      if (!others.length) { res(); return; }
+      let partner = others[0];
+      const give = new Set(), get = new Set();
+      let giveCard = false, getCard = false;
+      const draw = (msg = '') => {
+        const mine = owned(me).filter(tradable), theirs = owned(partner).filter(tradable);
+        const item = (c, set, side) => `<label class="it"><input type="checkbox" data-s="${side}" data-i="${c.i}"${set.has(c.i) ? ' checked' : ''}><span class="sw" style="background:${c.t === 'street' ? GC[c.g] : '#999'}"></span>${c.n}${c.mort ? ' (залог)' : ''}</label>`;
+        $('#dlg').innerHTML = `<h2>Обмен</h2>
+          <div class="row">${others.map(o => `<button class="btn sm ${o === partner ? '' : 'ghost'}" type="button" data-p="${o.id}">${esc(o.name)}</button>`).join('')}</div>
+          <div class="trade">
+            <div class="col"><h4>Вы отдаёте</h4>${mine.map(c => item(c, give, 'g')).join('') || '<small>Нечего предложить</small>'}
+              ${me.cards.length ? `<label class="it"><input type="checkbox" id="gc"${giveCard ? ' checked' : ''}>Карточка освобождения</label>` : ''}
+              <label for="gm">Деньги (у вас ${rub(me.money)})</label><input type="number" id="gm" min="0" max="${me.money}" step="10" value="${+($('#gm') ? $('#gm').value : 0) || 0}"></div>
+            <div class="col"><h4>Вы получаете</h4>${theirs.map(c => item(c, get, 'r')).join('') || '<small>Нет участков без построек</small>'}
+              ${partner.cards.length ? `<label class="it"><input type="checkbox" id="rc"${getCard ? ' checked' : ''}>Карточка освобождения</label>` : ''}
+              <label for="rm">Деньги (у игрока ${rub(partner.money)})</label><input type="number" id="rm" min="0" max="${partner.money}" step="10" value="${+($('#rm') ? $('#rm').value : 0) || 0}"></div>
+          </div>
+          <p>${msg}</p>
+          <div class="actions"><button class="btn ghost" type="button" id="trClose">Закрыть</button><button class="btn" type="button" id="trGo">Предложить</button></div>`;
+        $('#dlg').querySelectorAll('[data-p]').forEach(b => b.onclick = () => { partner = P(+b.dataset.p); get.clear(); getCard = false; draw(); });
+        $('#dlg').querySelectorAll('input[type=checkbox][data-s]').forEach(cb => cb.onchange = () => {
+          const set = cb.dataset.s === 'g' ? give : get;
+          cb.checked ? set.add(+cb.dataset.i) : set.delete(+cb.dataset.i);
+        });
+        if ($('#gc')) $('#gc').onchange = e => { giveCard = e.target.checked; };
+        if ($('#rc')) $('#rc').onchange = e => { getCard = e.target.checked; };
+        $('#trClose').onclick = () => { closeDlg(); res(); };
+        $('#trGo').onclick = async () => {
+          const gm = Math.max(0, Math.min(me.money, Math.floor(+$('#gm').value || 0)));
+          const rm = Math.max(0, Math.min(partner.money, Math.floor(+$('#rm').value || 0)));
+          const gp = [...give].map(i => B[i]), rp = [...get].map(i => B[i]);
+          if (!gp.length && !rp.length && !gm && !rm && !giveCard && !getCard) { draw('Выберите, что вы меняете.'); return; }
+          const ok = aiEvalTrade(partner, me, gp, rp, gm + (giveCard ? 50 : 0), rm + (getCard ? 60 : 0));
+          if (!ok) { draw(`${esc(partner.name)}: «Не, так не пойдёт. Добавь ещё.»`); return; }
+          me.money -= gm; partner.money += gm; partner.money -= rm; me.money += rm;
+          if (giveCard) partner.cards.push(me.cards.pop());
+          if (getCard) me.cards.push(partner.cards.pop());
+          closeDlg();
+          await transferProps(me, partner, gp);
+          await transferProps(partner, me, rp);
+          log(`Сделка: ${esc(me.name)} ⇄ ${esc(partner.name)}${gp.length ? '; отдано: ' + gp.map(c => c.s).join(', ') : ''}${rp.length ? '; получено: ' + rp.map(c => c.s).join(', ') : ''}${gm ? '; доплата ' + rub(gm) : ''}${rm ? '; получено ' + rub(rm) : ''}`);
+          give.clear(); get.clear();
+          render();
+          res();
+        };
+      };
+      openDlg('');
+      draw();
+    });
+  }
+  async function transferProps(from, to, list) {
+    for (const c of list) {
+      c.owner = to.id;
+      if (c.mort) {
+        const fee = Math.ceil(c.p / 2 * .1);
+        if (to.money >= fee) { to.money -= fee; log(`${esc(to.name)} платит банку 10 % за заложенный участок ${c.n}: ${rub(fee)}`); }
+      }
+    }
+  }
+
+  /* ---------- money flow ---------- */
+  async function charge(p, amount, to, reason) {
+    if (amount <= 0) return true;
+    if (p.money < amount) {
+      if (p.human) {
+        status(`Нужно ${rub(amount)}${reason ? ': ' + reason : ''}`);
+        const r = await manage(p, amount);
+        if (r === 'bankrupt' || p.money < amount) { await bankrupt(p, to); return false; }
+      } else {
+        aiRaise(p, amount);
+        if (p.money < amount) { await bankrupt(p, to); return false; }
+      }
+    }
+    p.money -= amount;
+    if (to) to.money += amount;
+    render();
+    return true;
+  }
+  async function bankrupt(p, to) {
+    log(`<b>${esc(p.name)} — банкрот!</b>`);
+    for (const c of owned(p)) {
+      if (c.t === 'street' && c.houses) {
+        p.money += c.houses * c.h / 2;
+        if (c.houses === 5) S.hotelsLeft++; else S.housesLeft += c.houses;
+        c.houses = 0;
+      }
+    }
+    if (to) {
+      to.money += Math.max(0, p.money);
+      await transferProps(p, to, owned(p));
+      to.cards.push(...p.cards);
+      log(`Всё имущество переходит игроку ${esc(to.name)}`);
+    } else {
+      owned(p).forEach(c => { c.owner = null; c.mort = false; });
+      p.cards.forEach(d => S[d].push(jailIdx(d)));
+      log('Имущество возвращается банку');
+    }
+    p.cards = []; p.money = 0; p.bankrupt = true; p.jail = false;
+    render();
+  }
+
+  /* ---------- movement ---------- */
+  async function moveBy(p, steps) {
+    for (let k = 0; k < steps; k++) {
+      p.pos = (p.pos + 1) % 40;
+      if (p.pos === 0) { p.money += 200; log(`${esc(p.name)} проходит «Вперёд» и получает 200 руб.`); renderPlayers(); }
+      renderBoard();
+      await wait(110);
+    }
+    B.forEach(c => c.el.classList.toggle('lit', c.i === p.pos));
+  }
+  const moveTo = (p, to) => moveBy(p, (to - p.pos + 40) % 40);
+  function sendJail(p) {
+    p.pos = 10; p.jail = true; p.jailTurns = 0;
+    log(`${esc(p.name)} отправляется в тюрьму`);
+    status(`${esc(p.name)} в тюрьме`);
+    render();
+  }
+  const jailIdx = deck => (deck === 'chance' ? CHANCE : CHEST).findIndex(c => c.a === 'jailcard');
+
+  /* ---------- landing ---------- */
+  async function land(p, dice, opt = {}) {
+    const c = B[p.pos];
+    status(`${esc(p.name)}: ${c.n}`);
+    if (BUY(c)) return landProp(p, c, dice, opt);
+    if (c.t === 'tax') { log(`${esc(p.name)} платит налог ${rub(c.p)}`); return charge(p, c.p, null, c.n); }
+    if (c.t === 'chance' || c.t === 'chest') return drawCard(p, c.t, dice);
+    if (c.t === 'gojail') return sendJail(p);
+  }
+  async function landProp(p, c, dice, opt) {
+    if (c.owner == null) return offerBuy(p, c);
+    if (c.owner === p.id) return;
+    const o = P(c.owner);
+    if (c.mort) { log(`${c.n} заложено, аренда не взимается`); return; }
+    let d = dice;
+    if (c.t === 'util' && opt.utilTen) {
+      const r = await rollDice(); d = r[0] + r[1];
+      log(`${esc(p.name)} бросает кубики для предприятия: ${d}`);
+    }
+    const rent = rentFor(c, d, opt);
+    log(`${esc(p.name)} платит аренду ${rub(rent)} игроку ${esc(o.name)} за ${c.n}`);
+    await charge(p, rent, o, `аренда за ${c.n}`);
+  }
+  async function offerBuy(p, c) {
+    let buy;
+    if (p.human) {
+      buy = await ask(`<h2>Свободный участок</h2>${deedHTML(c)}<p>У вас ${rub(p.money)}. Если не купите, участок уйдёт с аукциона.</p>`,
+        [{ label: 'На аукцион', v: false, cls: 'ghost' }, { label: `Купить за ${rub(c.p)}`, v: true, disabled: p.money < c.p }]);
+    } else { await wait(500); buy = aiWantsBuy(p, c); }
+    if (buy) {
+      p.money -= c.p; c.owner = p.id;
+      log(`${esc(p.name)} покупает ${c.n} за ${rub(c.p)}`);
+      render();
+    } else {
+      log(`${esc(p.name)} не покупает ${c.n}. Аукцион!`);
+      await auction(c);
+    }
+  }
+  async function auction(c) {
+    const bidders = alive();
+    const active = new Set(bidders.map(b => b.id));
+    const caps = {};
+    bidders.forEach(b => { if (!b.human) caps[b.id] = aiMaxBid(b, c); });
+    let price = 0, leader = null;
+    const humanIn = bidders.some(b => b.human);
+    const drawState = (extra = '') => {
+      $('#dlg').innerHTML = `<h2>Аукцион</h2>${deedHTML(c)}<div class="auc"><div class="bid">${price ? rub(price) : 'Ставок нет'}</div>
+        <div class="who">${leader ? 'Лидирует: ' + esc(leader.name) : 'Начальная ставка от 10 руб.'}</div>
+        <div class="who">Участвуют: ${bidders.filter(b => active.has(b.id)).map(b => esc(b.name)).join(', ') || 'никто'}</div>${extra}</div>`;
+    };
+    openDlg(''); drawState();
+    outer: for (let round = 0; round < 200; round++) {
+      let raised = false;
+      for (const b of bidders) {
+        if (!active.has(b.id) || b === leader) continue;
+        if (active.size === 1 && leader && active.has(leader.id)) break outer;
+        let bid = null;
+        if (b.human) {
+          bid = await new Promise(res => {
+            const opts = [10, 50, 100].map(x => price + x);
+            drawState(`<div class="row" style="justify-content:center">${opts.map(v => `<button class="btn" type="button" data-v="${v}"${v > b.money ? ' disabled' : ''}>${rub(v)}</button>`).join('')}<button class="btn ghost" type="button" data-v="0">Пас</button></div>`);
+            $('#dlg').querySelectorAll('[data-v]').forEach(el => el.onclick = () => res(+el.dataset.v || null));
+          });
+        } else {
+          await wait(humanIn ? 450 : 150);
+          const step = caps[b.id] - price > 150 ? 50 : 10;
+          if (price + step <= caps[b.id] && price + step <= b.money) bid = price + step;
+          else if (price + 10 <= caps[b.id] && price + 10 <= b.money) bid = price + 10;
+        }
+        if (bid == null) { active.delete(b.id); log(`${esc(b.name)}: пас`); }
+        else { price = bid; leader = b; raised = true; }
+        drawState();
+        if (active.size === 0) break outer;
+        if (active.size === 1 && leader && active.has(leader.id)) break outer;
+      }
+      if (!raised && !leader) break;
+    }
+    await wait(500);
+    closeDlg();
+    if (leader) {
+      leader.money -= price; c.owner = leader.id;
+      log(`${esc(leader.name)} выигрывает аукцион: ${c.n} за ${rub(price)}`);
+    } else log(`${c.n} остаётся у банка`);
+    render();
+  }
+
+  async function drawCard(p, deck, dice) {
+    const list = deck === 'chance' ? CHANCE : CHEST;
+    const idx = S[deck].shift();
+    const card = list[idx];
+    if (card.a !== 'jailcard') S[deck].push(idx);
+    const title = deck === 'chance' ? 'Шанс' : 'Общественная казна';
+    $('#cardSlot').innerHTML = `<div class="cardshow ${deck}"><b>${title}</b><span>${card.t}</span></div>`;
+    log(`${esc(p.name)} тянет «${title}»: ${card.t}`);
+    if (p.human) await ask(`<h2>${title}</h2><p>${card.t}</p>`, [{ label: 'Хорошо', v: 1 }]);
+    else await wait(1500);
+    $('#cardSlot').innerHTML = '';
+    switch (card.a) {
+      case 'goto': await moveTo(p, card.to); return land(p, dice);
+      case 'rail': { const to = RAILS.find(i => i > p.pos) ?? RAILS[0]; await moveTo(p, to); return land(p, dice, { railDouble: true }); }
+      case 'util': { const to = UTILS.find(i => i > p.pos) ?? UTILS[0]; await moveTo(p, to); return land(p, dice, { utilTen: true }); }
+      case 'money':
+        if (card.v > 0) { p.money += card.v; render(); return; }
+        return charge(p, -card.v, null, title);
+      case 'jailcard': p.cards.push(deck); render(); return;
+      case 'back': p.pos = (p.pos + 37) % 40; renderBoard(); await wait(300); return land(p, dice);
+      case 'jail': return sendJail(p);
+      case 'repair': {
+        let sum = 0;
+        owned(p).forEach(c => { if (c.t === 'street') sum += c.houses === 5 ? card.ho : c.houses * card.hh; });
+        log(`${esc(p.name)} платит за ремонт ${rub(sum)}`);
+        return charge(p, sum, null, 'ремонт');
+      }
+      case 'each': {
+        const others = alive().filter(o => o !== p);
+        for (const o of others) {
+          if (card.v < 0) { if (!(await charge(p, -card.v, o, title))) return; }
+          else await charge(o, card.v, p, 'подарок на день рождения');
+        }
+      }
+    }
+  }
+
+  /* ---------- turns ---------- */
+  async function jailTurn(p) {
+    let choice;
+    if (p.human) {
+      choice = await menu([
+        { label: 'Бросить на дубль', v: 'roll' },
+        { label: 'Заплатить 50 руб.', v: 'pay', cls: 'alt', disabled: () => p.money < 50 },
+        { label: 'Использовать карточку', v: 'card', cls: 'alt', hidden: () => !p.cards.length },
+      ], `Вы в тюрьме (попытка ${p.jailTurns + 1} из 3). Можно выйти за 50 руб., по карточке или выбросить дубль.`);
+    } else { await wait(500); choice = aiJail(p); }
+    if (choice === 'card') {
+      const d = p.cards.pop(); S[d].push(jailIdx(d));
+      p.jail = false; p.jailTurns = 0; log(`${esc(p.name)} выходит из тюрьмы по карточке`); render();
+      return 'free';
+    }
+    if (choice === 'pay') {
+      if (!(await charge(p, 50, null, 'выход из тюрьмы'))) return 'done';
+      p.jail = false; p.jailTurns = 0; log(`${esc(p.name)} платит 50 руб. и выходит из тюрьмы`); render();
+      return 'free';
+    }
+    const d = await rollDice();
+    const sum = d[0] + d[1];
+    if (d[0] === d[1]) {
+      p.jail = false; p.jailTurns = 0;
+      log(`${esc(p.name)} выбрасывает дубль ${d[0]}–${d[1]} и выходит из тюрьмы`);
+      await moveBy(p, sum); await land(p, sum);
+      return 'done';
+    }
+    p.jailTurns++;
+    if (p.jailTurns >= 3) {
+      log(`${esc(p.name)}: третья попытка не удалась, штраф 50 руб.`);
+      if (!(await charge(p, 50, null, 'выход из тюрьмы'))) return 'done';
+      p.jail = false; p.jailTurns = 0;
+      await moveBy(p, sum); await land(p, sum);
+      return 'done';
+    }
+    log(`${esc(p.name)} выбрасывает ${d[0]}–${d[1]} и остаётся в тюрьме`);
+    render();
+    return 'done';
+  }
+
+  async function takeTurn(p) {
+    S.turn++;
+    render();
+    status(`Ходит ${esc(p.name)}`);
+    if (p.jail) {
+      const r = await jailTurn(p);
+      if (r === 'done') { if (!p.bankrupt) await endPhase(p); return; }
+    }
+    let doubles = 0;
+    for (;;) {
+      if (p.human) await menu([{ label: 'Бросить кубики', v: 'roll' }], doubles ? 'Дубль! Бросайте ещё раз.' : 'Ваш ход. Перед броском можно строить, закладывать и меняться.');
+      else { aiManage(p); busy(`Ходит ${esc(p.name)}…`); await wait(600); }
+      const d = await rollDice();
+      const sum = d[0] + d[1], dbl = d[0] === d[1];
+      log(`${esc(p.name)} бросает ${d[0]}–${d[1]}${dbl ? ' (дубль)' : ''}`);
+      if (dbl && ++doubles === 3) { log('Три дубля подряд!'); sendJail(p); break; }
+      await moveBy(p, sum);
+      await land(p, sum);
+      if (p.bankrupt || p.jail || !dbl) break;
+    }
+    if (!p.bankrupt) await endPhase(p);
+  }
+  async function endPhase(p) {
+    if (p.human) await menu([{ label: 'Завершить ход', v: 'end' }], 'Можно строить дома, закладывать и меняться. Затем завершите ход.');
+    else { aiManage(p); await aiOffer(p); await wait(400); }
+  }
+
+  async function gameLoop(gid) {
+    while (gid === GAME_ID) {
+      const p = S.players[S.cur];
+      saveGame();
+      if (!p.bankrupt) await takeTurn(p);
+      if (gid !== GAME_ID) return;
+      const me = S.players[0];
+      if (me.bankrupt || alive().length === 1) return finish();
+      do { S.cur = (S.cur + 1) % S.players.length; } while (S.players[S.cur].bankrupt);
+    }
+  }
+  async function finish() {
+    const ranked = [...S.players].sort((a, b) => (a.bankrupt - b.bankrupt) || netWorth(b) - netWorth(a));
+    const me = S.players[0];
+    const won = !me.bankrupt;
+    clearSave();
+    busy(won ? 'Вы победили!' : 'Игра окончена.');
+    await ask(`<h2>${won ? 'Вы — столичный магнат!' : 'Вы разорились'}</h2>
+      <p>${won ? 'Все соперники обанкротились.' : 'Ваша империя рухнула. Итоги:'}</p>
+      <div class="standings">${ranked.map(p => `<div><span>${esc(p.name)}</span><b>${p.bankrupt ? 'банкрот' : rub(netWorth(p))}</b></div>`).join('')}</div>`,
+      [{ label: 'Новая игра', v: 1 }]);
+    toSetup();
+  }
+
+  /* ---------- setup ---------- */
+  let nOpp = 3;
+  $('#oppSeg').querySelectorAll('button').forEach(b => b.onclick = () => {
+    nOpp = +b.dataset.n;
+    $('#oppSeg').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  });
+  function toSetup() {
+    GAME_ID++;
+    closeDlg();
+    $('#game').hidden = true; $('#setup').hidden = false;
+    showSaveInfo();
+    window.scrollTo(0, 0);
+  }
+  function start() {
+    GAME_ID++;
+    const gid = GAME_ID;
+    B.forEach(c => { if (BUY(c)) { c.owner = null; c.mort = false; c.houses = 0; } });
+    const people = shuffle([...AI_PEOPLE]).slice(0, nOpp);
+    const mk = (id, name, human, tag) => ({ id, name, human, tag, color: TOKEN_COLORS[id], money: 1500, pos: 0, jail: false, jailTurns: 0, cards: [], bankrupt: false });
+    S = {
+      players: [mk(0, ($('#nameIn').value.trim() || 'Игрок').slice(0, 16), true, ''), ...people.map((x, k) => mk(k + 1, x.name, false, x.tag))],
+      cur: 0, turn: 0, housesLeft: 32, hotelsLeft: 12, declined: {},
+      chance: shuffle([...CHANCE.keys()]), chest: shuffle([...CHEST.keys()]),
+    };
+    $('#setup').hidden = true; $('#game').hidden = false;
+    buildBoard();
+    $('#log').innerHTML = '';
+    drawDie($('#d1'), 3); drawDie($('#d2'), 4);
+    render();
+    log('Игра началась! У каждого 1500 руб.');
+    window.scrollTo(0, 0);
+    gameLoop(gid);
+  }
+  $('#startBtn').onclick = start;
+  $('#speedBtn').onclick = e => { fast = !fast; e.currentTarget.textContent = 'Темп: ' + (fast ? 'быстрый' : 'обычный'); };
+  $('#quitBtn').onclick = async () => {
+    const ok = await ask('<h2>Выйти в меню?</h2><p>Текущая партия сохранена на начало хода. Её можно продолжить с экрана запуска кнопкой «Продолжить партию».</p>', [{ label: 'Отмена', v: false, cls: 'ghost' }, { label: 'В меню', v: true }]);
+    if (ok) toSetup();
+  };
+  /* ---------- save & resume ---------- */
+  const SAVE_KEY = 'stolichny-capital-save';
+  function snapshot() {
+    if (!S || !S.players) return null;
+    return {
+      v: 1, at: Date.now(), fast,
+      S: JSON.parse(JSON.stringify({ players: S.players, cur: S.cur, turn: S.turn, housesLeft: S.housesLeft, hotelsLeft: S.hotelsLeft, declined: S.declined, chance: S.chance, chest: S.chest })),
+      props: B.filter(BUY).map(c => [c.i, c.owner, c.mort, c.houses]),
+      log: [...$('#log').children].slice(0, 40).map(li => li.innerHTML),
+    };
+  }
+  let lastSave = null;
+  function saveGame() {
+    lastSave = snapshot();
+    try { if (lastSave) localStorage.setItem(SAVE_KEY, JSON.stringify(lastSave)); } catch (e) {}
+  }
+  function clearSave() {
+    lastSave = null;
+    try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
+  }
+  function loadSave() {
+    try {
+      const d = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
+      if (d && d.v === 1 && d.S && Array.isArray(d.props)) return d;
+    } catch (e) {}
+    return lastSave;
+  }
+  function showSaveInfo() {
+    const d = loadSave();
+    $('#resumeBtn').hidden = !d;
+    $('#saveInfo').hidden = !d;
+    if (!d) return;
+    const me = d.S.players[0];
+    const when = new Date(d.at).toLocaleString('ru-RU', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
+    $('#saveInfo').textContent = `Сохранённая партия: ${when}, ход ${d.S.turn}, игроков ${d.S.players.length}, у вас ${rub(me.money)}`;
+  }
+  function restore(d) {
+    GAME_ID++;
+    const gid = GAME_ID;
+    B.forEach(c => { if (BUY(c)) { c.owner = null; c.mort = false; c.houses = 0; } });
+    d.props.forEach(([i, owner, mort, houses]) => { Object.assign(B[i], { owner, mort, houses }); });
+    S = JSON.parse(JSON.stringify(d.S));
+    fast = !!d.fast;
+    $('#speedBtn').textContent = 'Темп: ' + (fast ? 'быстрый' : 'обычный');
+    closeDlg();
+    $('#setup').hidden = true; $('#game').hidden = false;
+    buildBoard();
+    $('#log').innerHTML = '';
+    [...(d.log || [])].reverse().forEach(h => log(h));
+    log('Партия продолжена с сохранения.');
+    drawDie($('#d1'), 3); drawDie($('#d2'), 4);
+    render();
+    window.scrollTo(0, 0);
+    gameLoop(gid);
+  }
+  $('#resumeBtn').onclick = () => { const d = loadSave(); if (d) restore(d); };
+  if (window.claude && window.claude.hot && typeof window.claude.hot.snapshot === 'function') {
+    try { window.claude.hot.snapshot(() => lastSave || snapshot()); } catch (e) {}
+  }
+  function boot(data) {
+    const d = (data && data.S && data.props) ? data : null;
+    if (d) restore(d); else showSaveInfo();
+  }
+  if (window.claude && window.claude.hot && window.claude.hot.ready) window.claude.hot.ready(boot);
+  else boot(window.claude && window.claude.hot ? window.claude.hot.data : null);
+})();
+</script>
+
+<script>
+(() => {
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(() => {}); });
+  }
+  const box = document.getElementById('installBox'), btn = document.getElementById('installBtn'), hint = document.getElementById('installHint');
+  const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  let deferred = null;
+  window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferred = e; if (!standalone) { box.hidden = false; btn.hidden = false; hint.textContent = ''; } });
+  btn.addEventListener('click', async () => {
+    if (!deferred) return;
+    deferred.prompt();
+    try { await deferred.userChoice; } catch (e) {}
+    deferred = null; box.hidden = true;
+  });
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  if (ios && !standalone) { box.hidden = false; btn.hidden = true; hint.textContent = 'Чтобы установить на iPhone: кнопка «Поделиться» в Safari, затем «На экран «Домой»».'; }
+  window.addEventListener('appinstalled', () => { box.hidden = true; });
+})();
+</script>
+</body>
+</html>
