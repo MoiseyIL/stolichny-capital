@@ -1,0 +1,8 @@
+{
+  "appId": "ru.moiseyil.stolichny",
+  "appName": "Столичный капитал",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#6b4630"
+  }
+}

@@ -1212,6 +1212,13 @@ img { max-width: 100%; }
 
 <script>
 (() => {
+  const native = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+  if (native) {
+    // Android-приложение: кнопка «Назад» сворачивает игру, а не закрывает её посреди партии.
+    const App = window.Capacitor.Plugins && window.Capacitor.Plugins.App;
+    if (App) App.addListener('backButton', () => { if (document.getElementById('modal').hidden) App.minimizeApp(); });
+    return;
+  }
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(() => {}); });
   }

@@ -1,5 +1,5 @@
 // Офлайн-кэш «Столичного капитала». При изменении файлов увеличьте номер версии.
-const VERSION = 'stolichny-v1';
+const VERSION = 'stolichny-v2';
 const SHELL = [
   './',
   './index.html',
